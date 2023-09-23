@@ -1,60 +1,213 @@
+import { ChangeEventHandler, useRef, useState } from "react";
 import { ErrorMessage } from "../ErrorMessage";
+import { PhoneInputState, UserInformation } from "../types";
+import * as vld from "../utils/validations";
+import { phoneInputLengths, allCities } from "../utils/shared-data";
+import FunctionalPhoneInput from "./FunctionalPhone";
+import FunctionalTextInput from "./FunctionalTextInput";
 
 const firstNameErrorMessage = "First name must be at least 2 characters long";
 const lastNameErrorMessage = "Last name must be at least 2 characters long";
-const emailErrorMessage = "Email is Invalid";
+const emailErrorMessage = "Email is Invalid.";
 const cityErrorMessage = "State is Invalid";
 const phoneNumberErrorMessage = "Invalid Phone Number";
 
-export const FunctionalForm = () => {
+export const FunctionalForm = ({
+  setUserData,
+}: {
+  setUserData: React.Dispatch<React.SetStateAction<UserInformation>>;
+}) => {
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [firstNameInput, setFirstNameInput] = useState("");
+  const [lastNameInput, setLastNameInput] = useState("");
+  const [emailInput, setEmailInput] = useState("");
+  const [cityInput, setCityInput] = useState("");
+  const [phoneInput, setPhoneInput] = useState<PhoneInputState>([
+    "",
+    "",
+    "",
+    "",
+  ]);
+
+  const refs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+  ];
+
+  // Returns onChange function for phone input fields.
+  const createOnChangeHandler =
+    (index: number): ChangeEventHandler<HTMLInputElement> =>
+    (e) => {
+      const phoneInputCount = phoneInputLengths.length;
+      const currentMaxLength = phoneInputLengths[index];
+      const nextRef = refs[index + 1];
+      const prevRef = refs[index - 1];
+      const value = e.target.value;
+
+      const shouldGoToNextRef =
+        currentMaxLength === value.length && index < phoneInputCount - 1;
+      const shouldGoToPrevRef = value.length === 0 && index > 0;
+
+      // Maps through phoneInput and assigns the input value to the state.
+      const newState = phoneInput.map((phoneInput, phoneInputIndex) =>
+        index === phoneInputIndex && !isNaN(Number(e.target.value) + 1)
+          ? e.target.value.slice(0, phoneInputLengths[index])
+          : phoneInput
+      ) as PhoneInputState;
+
+      if (shouldGoToNextRef) {
+        nextRef.current?.focus();
+      }
+
+      if (shouldGoToPrevRef) {
+        prevRef.current?.focus();
+      }
+      setPhoneInput(newState);
+    };
+
+  const allValidationsPassed = () =>
+    vld.isNameValid(firstNameInput) &&
+    vld.isNameValid(lastNameInput) &&
+    vld.isEmailValid(emailInput) &&
+    vld.isCityValid(cityInput, allCities) &&
+    vld.isPhoneValid(phoneInput);
+
+  const resetForm = () => {
+    setFirstNameInput("");
+    setLastNameInput("");
+    setEmailInput("");
+    setCityInput("");
+    setPhoneInput(["", "", "", ""]);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (allValidationsPassed()) {
+      setUserData({
+        firstName: firstNameInput,
+        lastName: lastNameInput,
+        email: emailInput,
+        city: cityInput,
+        phone: phoneInput.join(""),
+      });
+      resetForm();
+      setIsSubmitted(false);
+    } else {
+      alert("Bad Data Input");
+      setIsSubmitted(true);
+    }
+  };
+
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       <u>
         <h3>User Information Form</h3>
       </u>
 
       {/* first name input */}
-      <div className="input-wrap">
-        <label>{"First Name"}:</label>
-        <input placeholder="Bilbo" />
-      </div>
-      <ErrorMessage message={firstNameErrorMessage} show={true} />
+      <FunctionalTextInput
+        label="First Name"
+        inputProps={{
+          placeholder: "Bilbo",
+          value: firstNameInput,
+          onChange: (e) => {
+            setFirstNameInput(e.target.value);
+          },
+        }}
+      />
+      <ErrorMessage
+        message={firstNameErrorMessage}
+        show={isSubmitted && !vld.isNameValid(firstNameInput)}
+      />
 
       {/* last name input */}
-      <div className="input-wrap">
-        <label>{"Last Name"}:</label>
-        <input placeholder="Baggins" />
-      </div>
-      <ErrorMessage message={lastNameErrorMessage} show={true} />
+      <FunctionalTextInput
+        label="Last Name"
+        inputProps={{
+          placeholder: "Baggins",
+          value: lastNameInput,
+          onChange: (e) => {
+            setLastNameInput(e.target.value);
+          },
+        }}
+      />
+      <ErrorMessage
+        message={lastNameErrorMessage}
+        show={isSubmitted && !vld.isNameValid(lastNameInput)}
+      />
 
       {/* Email Input */}
-      <div className="input-wrap">
-        <label>{"Email"}:</label>
-        <input placeholder="bilbo-baggins@adventurehobbits.net" />
-      </div>
-      <ErrorMessage message={emailErrorMessage} show={true} />
+      <FunctionalTextInput
+        label="Email"
+        inputProps={{
+          placeholder: "bilbo-baggins@adventurehobbits.net",
+          value: emailInput,
+          onChange: (e) => {
+            setEmailInput(e.target.value);
+          },
+        }}
+      />
+      <ErrorMessage
+        message={emailErrorMessage}
+        show={isSubmitted && !vld.isEmailValid(emailInput)}
+      />
 
       {/* City Input */}
-      <div className="input-wrap">
-        <label>{"City"}:</label>
-        <input placeholder="Hobbiton" />
-      </div>
-      <ErrorMessage message={cityErrorMessage} show={true} />
+      <FunctionalTextInput
+        label="City"
+        inputProps={{
+          placeholder: "Hobbiton",
+          list: "cities",
+          value: cityInput,
+          onChange: (e) => {
+            setCityInput(e.target.value);
+          },
+        }}
+      />
+      <ErrorMessage
+        message={cityErrorMessage}
+        show={isSubmitted && !vld.isCityValid(cityInput, allCities)}
+      />
 
+      {/* Phone Input */}
       <div className="input-wrap">
         <label htmlFor="phone">Phone:</label>
         <div id="phone-input-wrap">
-          <input type="text" id="phone-input-1" placeholder="55" />
-          -
-          <input type="text" id="phone-input-2" placeholder="55" />
-          -
-          <input type="text" id="phone-input-3" placeholder="55" />
-          -
-          <input type="text" id="phone-input-4" placeholder="5" />
+          {phoneInputLengths.map((length, index) => {
+            return (
+              <span
+                key={index}
+                style={
+                  index < phoneInputLengths.length - 1
+                    ? { display: "flex", flexGrow: "1" }
+                    : { display: "flex" }
+                }
+              >
+                <FunctionalPhoneInput
+                  phoneInputProps={{
+                    ref: refs[index],
+                    type: "text",
+                    id: `phone-input-${index + 1}`,
+                    placeholder: `${"5".repeat(length)}`,
+                    value: phoneInput[index],
+                    onChange: createOnChangeHandler(index),
+                  }}
+                />
+                {index < phoneInputLengths.length - 1 ? (
+                  <div style={{ flexGrow: "1" }}>-</div>
+                ) : null}
+              </span>
+            );
+          })}
         </div>
       </div>
 
-      <ErrorMessage message={phoneNumberErrorMessage} show={true} />
+      <ErrorMessage
+        message={phoneNumberErrorMessage}
+        show={isSubmitted && !vld.isPhoneValid(phoneInput)}
+      />
 
       <input type="submit" value="Submit" />
     </form>

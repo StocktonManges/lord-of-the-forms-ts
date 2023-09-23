@@ -1,9 +1,9 @@
 import "./App.css";
 import { ClassApp } from "./ClassApp/ClassApp";
 import { FunctionalApp } from "./FunctionalApp/FunctionalApp";
-import { allCities } from "./utils/all-cities";
+import { allCities } from "./utils/shared-data";
 
-function App() {
+export default function App() {
   return (
     <>
       <div className="all-container">
@@ -29,5 +29,3 @@ function App() {
     </>
   );
 }
-
-export default App;
