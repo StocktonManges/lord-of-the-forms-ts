@@ -2,29 +2,34 @@ import { Component } from "react";
 import { ClassForm } from "./ClassForm";
 import { UserInformation } from "../types";
 import { ProfileInformation } from "../ProfileInformation";
-type State = { userInformation: UserInformation | null };
 
-const defaultUser: UserInformation = {
-  email: "default@default.com",
-  firstName: "Default",
-  lastName: "Default",
-  phone: "1234567",
-  city: "Hobbiton",
-};
-
-export class ClassApp extends Component<Record<string, never>, State> {
+export class ClassApp extends Component<
+  Record<string, never>,
+  UserInformation
+> {
+  state: UserInformation = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    city: "",
+    phone: "",
+  };
   render() {
     return (
       <>
         <h2>Class</h2>
-        <ProfileInformation
-          userData={
-            // toggle the following lines to change
-            // null
-            defaultUser
-          }
+        <ProfileInformation userData={this.state} />
+        <ClassForm
+          updateParentState={(userData: UserInformation) => {
+            this.setState({
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              email: userData.email,
+              city: userData.city,
+              phone: userData.phone,
+            });
+          }}
         />
-        <ClassForm />
       </>
     );
   }

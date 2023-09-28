@@ -17,11 +17,15 @@ export function isNameValid(nameInput: string) {
   return nameInput.length >= 2;
 }
 
-export const isCityValid = (cityInput: string, cityArr: string[]) =>
-  cityArr.map((city) => capitalize(city)).includes(capitalize(cityInput));
+export const isCityValid = (cityInput: string, cityArr: string[]) => {
+  return cityArr
+    .map((city) => capitalize(city))
+    .includes(capitalize(cityInput));
+};
 
 export function isPhoneValid(phoneInput: PhoneInputState) {
   const phoneString = phoneInput.join("");
+
   return (
     phoneString.length ===
       phoneInputLengths.reduce((acc, curr) => acc + curr, 0) &&

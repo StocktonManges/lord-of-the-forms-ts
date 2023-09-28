@@ -47,13 +47,15 @@ export const FunctionalForm = ({
       const value = e.target.value;
 
       const shouldGoToNextRef =
-        currentMaxLength === value.length && index < phoneInputCount - 1;
+        currentMaxLength === value.length &&
+        index < phoneInputCount - 1 &&
+        !isNaN(Number(value) + 1);
       const shouldGoToPrevRef = value.length === 0 && index > 0;
 
       // Maps through phoneInput and assigns the input value to the state.
       const newState = phoneInput.map((phoneInput, phoneInputIndex) =>
-        index === phoneInputIndex && !isNaN(Number(e.target.value) + 1)
-          ? e.target.value.slice(0, phoneInputLengths[index])
+        index === phoneInputIndex && !isNaN(Number(value) + 1)
+          ? value.slice(0, phoneInputLengths[index])
           : phoneInput
       ) as PhoneInputState;
 
@@ -176,11 +178,12 @@ export const FunctionalForm = ({
         <label htmlFor="phone">Phone:</label>
         <div id="phone-input-wrap">
           {phoneInputLengths.map((length, index) => {
+            const isLastIteration = index < phoneInputLengths.length - 1;
             return (
               <span
                 key={index}
                 style={
-                  index < phoneInputLengths.length - 1
+                  isLastIteration
                     ? { display: "flex", flexGrow: "1" }
                     : { display: "flex" }
                 }
@@ -195,7 +198,7 @@ export const FunctionalForm = ({
                     onChange: createOnChangeHandler(index),
                   }}
                 />
-                {index < phoneInputLengths.length - 1 ? (
+                {isLastIteration ? (
                   <div style={{ flexGrow: "1" }}>-</div>
                 ) : null}
               </span>
